@@ -50,6 +50,8 @@ pub enum MessageType {
     TopologyOk,
     #[serde(rename = "gossip")]
     Gossip,
+    #[serde(rename = "request_replication")]
+    RequestReplication,
 }
 
 
@@ -139,15 +141,46 @@ impl Message {
         (Self::generate_response(request, MessageType::TopologyOk), all_nodes)
     }
 
-    pub fn parse_gossip_message(request: &Message) -> i64 {
-        let mut message_id: i64 = 0;
-        if let Some(val) = request.body.message_params.get("message") {
-            message_id = val.as_i64().unwrap();
+    pub fn parse_gossip_message(request: &Message) -> Vec<i64> {
+        let mut messages = vec![];
+        if let Some(val) = request.body.message_params.get("messages") {
+            let msg_ids = val.as_array().unwrap().clone();
+            for id in msg_ids {
+                messages.push(id.as_i64().unwrap());
+            }
         }
-        message_id 
+        messages 
     }
 
-    pub fn generate_gossip_request(current_node_id: &String, target_node_id: &String, message_id: i64, request: &Message) -> Message {
+    pub fn parse_request_replication_message(request: &Message, messages: &Vec<i64>, current_node_id: &String) -> Message  {
+        let mut resp = Message {
+            src: current_node_id.to_owned(),
+            dest: request.src.to_owned(),
+            body: MessageBody { 
+                typ: MessageType::Gossip, 
+                message_params: HashMap::new(),
+            }
+        };
+
+        let mut params = HashMap::new();
+        params.insert("messages".to_owned(), json!(messages));
+        resp.body.message_params = params;
+
+        resp
+    }
+
+    pub fn request_replication_request(current_node_id: &String, target_node_id: &String) -> Message {
+        Message {
+            src: current_node_id.to_owned(),
+            dest: target_node_id.to_owned(),
+            body: MessageBody { 
+                typ: MessageType::RequestReplication,
+                message_params: HashMap::new(),
+            }
+        }
+    }
+
+    pub fn generate_gossip_request(current_node_id: &String, target_node_id: &String, messages: &Vec<i64>, request: &Message) -> Message {
         let mut resp = Message { 
             src: current_node_id.to_owned(), 
             dest: target_node_id.to_owned(), 
@@ -158,7 +191,7 @@ impl Message {
         };
 
         let mut params = HashMap::new();
-        params.insert("message".to_owned(), json!(message_id));
+        params.insert("messages".to_owned(), json!(messages));
         params.insert("in_reply_to".to_owned(), request.body.message_params.get("msg_id").unwrap().clone().to_owned());
         // for now insert a dummy entry as msg_id, maybe snowflake algorithm here?
         params.insert("msg_id".to_owned(), json!(1));
