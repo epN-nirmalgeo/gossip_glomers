@@ -5,6 +5,10 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[[bin]]
+name = "broadcast"
+path = "src/challenge1-3/bin/main.rs"
+
 [dependencies]
 rand = "0.8.5"
 serde = { version = "1.0.189", features = ["derive"] }
