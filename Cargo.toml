@@ -7,7 +7,7 @@ edition = "2021"
 
 [[bin]]
 name = "broadcast"
-path = "src/challenge1-3/bin/main.rs"
+path = "src/broadcast/bin/main.rs"
 
 [dependencies]
 rand = "0.8.5"
