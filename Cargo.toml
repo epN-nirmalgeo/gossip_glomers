@@ -9,6 +9,10 @@ edition = "2021"
 name = "broadcast"
 path = "src/broadcast/bin/main.rs"
 
+[[bin]]
+name = "grow_counter"
+path = "src/grow_counter/bin/main.rs"
+
 [dependencies]
 rand = "0.8.5"
 serde = { version = "1.0.189", features = ["derive"] }
