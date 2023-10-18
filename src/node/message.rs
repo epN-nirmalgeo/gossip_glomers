@@ -6,14 +6,14 @@ use serde_json::{Value, json};
 use std::time::{SystemTime, UNIX_EPOCH};
 use rand::Rng;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct Message {
     src: String,
     dest: String,
     body: MessageBody,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct MessageBody {
 
     #[serde(rename = "type")]
@@ -22,7 +22,7 @@ pub struct MessageBody {
     #[serde(flatten)]
     message_params: HashMap<String, Value>,
 }
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub enum MessageType {
     #[serde(rename = "init")]
     Init,
@@ -128,10 +128,7 @@ impl Message {
         }
 
         if let Some(val) = request.body.message_params.get("topology") {
-            eprintln!("Val {:?} current_node_id {current_node_id}", val);
-            eprintln!("{:?}", val[current_node_id.as_str()]);
             if let Some(nodes) = val.get(current_node_id.as_str()).unwrap().as_array() {
-                eprintln!("nodes {:?}", nodes);
                 for node in nodes {
                     all_nodes.push(node.as_str().unwrap().to_owned());
                 }
@@ -196,9 +193,6 @@ impl Message {
         // for now insert a dummy entry as msg_id, maybe snowflake algorithm here?
         params.insert("msg_id".to_owned(), json!(1));
         resp.body.message_params = params;
-
-        eprintln!("Gossip message {:?}", resp);
         resp
-
     }
 }
